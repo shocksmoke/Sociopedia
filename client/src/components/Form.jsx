@@ -8,6 +8,8 @@ import Dropzone from "react-dropzone";
 import { useDispatch } from "react-redux";
 import { setLogin } from "../state/reducers";
 import { useNavigate } from "react-router-dom";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined"
+import { useTheme } from "@emotion/react";
 
 export default function Form() {
   const [pageType, setpageType] = useState("login");
@@ -17,6 +19,7 @@ export default function Form() {
 
   let isLogin = pageType === "login";
   let isMobile = useMediaQuery("(maxWidth:800px)");
+  let {palette}= useTheme();
 
   const loginSchema = Yup.object().shape({
     email: Yup.string().email("Invalid email").required("Email is required"),
@@ -51,17 +54,13 @@ export default function Form() {
 
       let json = await response.json();
 
-      if(json.user){
-
+      if (json.user) {
         dispatch(setLogin({ user: json.user, token: json.token }));
         onSubmitProps.resetForm();
         navigate("/home");
+      } else {
+        alert(json.message);
       }
-      else{
-        alert(json.message)
-      }
-
-
     } else {
       let uri = "http://localhost:4000/auth/register";
 
@@ -71,7 +70,6 @@ export default function Form() {
         formData.append(key, values[key]);
       }
 
-
       const response = await fetch(uri, {
         method: "POST",
         body: formData,
@@ -79,101 +77,91 @@ export default function Form() {
 
       let json = await response.json();
       onSubmitProps.resetForm();
-      navigate("/");
+      setpageType("login");
     }
   };
 
   return (
-    <Box alignItems="center" display="flex" flexDirection="column">
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4,1fr)",
-          width: isMobile ? "93%" : "50%",
-        }}
-      >
-        {!isLogin ? (
-          <Formik
-            initialValues={{
-              firstName: "",
-              lastName: "",
-              location: "",
-              occupation: "",
-              email: "",
-              password: "",
-              image: "",
-            }}
-            validationSchema={registerSchema}
-            onSubmit={handleSubmit}
-          >
-            {({
-              values,
-              errors,
-              touched,
-              handleChange,
-              handleBlur,
-              handleSubmit,
-              isSubmitting,
-              setFieldValue,
-              /* and other goodies */
-            }) => (
-              <form onSubmit={handleSubmit}>
-              <TextField
+    <Box>
+      {!isLogin ? (
+        <Formik
+          initialValues={{
+            firstName: "",
+            lastName: "",
+            location: "",
+            occupation: "",
+            email: "",
+            password: "",
+            image: "",
+          }}
+          validationSchema={registerSchema}
+          onSubmit={handleSubmit}
+        >
+          {({
+            values,
+            errors,
+            touched,
+            handleChange,
+            handleBlur,
+            handleSubmit,
+            isSubmitting,
+            setFieldValue,
+            /* and other goodies */
+          }) => (
+            <form onSubmit={handleSubmit}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gap: "30px",
+                  gridTemplateColumns: "repeat(4,1fr)",
+                  width: isMobile ? "93%" : "50%",
+                }}
+              >
+                <TextField
                   type="text"
                   name="firstName"
                   onChange={handleChange}
                   onBlur={handleBlur}
                   value={values.firstName}
                   label="firstName"
+                  sx={{ gridColumn: "span 2" }}
                 />
                 {errors.firstName && touched.firstName && errors.firstName}
-              <TextField
+                <TextField
                   type="text"
                   name="lastName"
                   onChange={handleChange}
                   onBlur={handleBlur}
                   value={values.lastName}
                   label="lastName"
+                  sx={{ gridColumn: "span 2" }}
                 />
                 {errors.lastName && touched.lastName && errors.lastName}
-              <TextField
+                <TextField
                   type="text"
                   name="occupation"
                   onChange={handleChange}
                   onBlur={handleBlur}
                   value={values.occupation}
                   label="occupation"
+                  sx={{ gridColumn: "span 4" }}
                 />
                 {errors.occupation && touched.occupation && errors.occupation}
-              <TextField
+                <TextField
                   type="text"
                   name="location"
                   onChange={handleChange}
                   onBlur={handleBlur}
                   value={values.location}
                   label="location"
+                  sx={{ gridColumn: "span 4" }}
                 />
                 {errors.location && touched.location && errors.location}
-              <TextField
-                  type="email"
-                  name="email"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.email}
-                  label="email"
-                />
-                {errors.email && touched.email && errors.email}
-              <TextField
-                  type="text"
-                  name="password"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.password}
-                  label="password"
-                />
-                {errors.password && touched.password && errors.password}
-
-                <Box border="3px solid black" borderRadius="5px">
+                <Box
+                  border="3px solid black"
+                  borderRadius="5px"
+                  sx={{ gridColumn: "span 4" }}
+                >
                   <label>Image</label>
                   <Dropzone
                     onDrop={(acceptedFiles) => {
@@ -184,44 +172,73 @@ export default function Form() {
                     multiple={false} // Allow only one file
                   >
                     {({ getRootProps, getInputProps }) => (
-                      <div {...getRootProps()} className="dropzone">
+                      <Box {...getRootProps()}          border={`2px dashed ${palette.primary.main}`}
+                        p="1rem"
+                        sx={{ "&:hover": { cursor: "pointer" } }}>
                         <input {...getInputProps()} />
-                        <p>
-                          Drag 'n' drop an image here, or click to select an
-                          image
-                        </p>
-                      </div>
+                        {!values.image ? (
+                          <p>Add Picture Here</p>
+                        ) : (
+                          <FlexBox>
+                            <Typography>{values.image.name}</Typography>
+                            <EditOutlinedIcon />
+                          </FlexBox>
+                        )}
+                      </Box>
                     )}
                   </Dropzone>
                   {isSubmitting ? (
                     <div className="loading">Uploading...</div>
                   ) : null}
                 </Box>
+                <TextField
+                  type="email"
+                  name="email"
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.email}
+                  label="email"
+                  sx={{ gridColumn: "span 4" }}
+                />
+                {errors.email && touched.email && errors.email}
+                <TextField
+                  type="text"
+                  name="password"
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.password}
+                  label="password"
+                  sx={{ gridColumn: "span 4" }}
+                />
+                {errors.password && touched.password && errors.password}
+
+              </Box>
               <Button onClick={handleSubmit}>Register</Button>
-              </form>
-            )}
-          </Formik>
-        ) : (
-          <Formik
-            initialValues={{
-              email: "",
-              password: "",
-            }}
-            validationSchema={loginSchema}
-            onSubmit={handleSubmit}
-          >
-            {({
-              values,
-              errors,
-              touched,
-              handleChange,
-              handleBlur,
-              handleSubmit,
-              isSubmitting,
-              setFieldValue,
-              /* and other goodies */
-            }) => (
-              <form onSubmit={handleSubmit}>
+            </form>
+          )}
+        </Formik>
+      ) : (
+        <Formik
+          initialValues={{
+            email: "",
+            password: "",
+          }}
+          validationSchema={loginSchema}
+          onSubmit={handleSubmit}
+        >
+          {({
+            values,
+            errors,
+            touched,
+            handleChange,
+            handleBlur,
+            handleSubmit,
+            isSubmitting,
+            setFieldValue,
+            /* and other goodies */
+          }) => (
+            <form onSubmit={handleSubmit}>
+              <Box>
                 <TextField
                   type="email"
                   name="email"
@@ -240,13 +257,13 @@ export default function Form() {
                   label="password"
                 />
                 {errors.password && touched.password && errors.password}
-                
+              </Box>
+
               <Button onClick={handleSubmit}>Login</Button>
-              </form>
-            )}
-          </Formik>
-        )}
-      </Box>
+            </form>
+          )}
+        </Formik>
+      )}
 
       <Button
         onClick={() => {

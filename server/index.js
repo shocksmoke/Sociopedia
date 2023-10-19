@@ -59,6 +59,13 @@ mongoose
   // await Post.insertMany(posts);
 
 
+  //defualt
+
+  app.get("/",(req,res)=>{
+    res.json("hello world");
+  })
+
+
 // Image upload routes
 app.post("/auth/register", upload.single("image"), register);
 app.post("/post/createPost", upload.single("image"), createPost);

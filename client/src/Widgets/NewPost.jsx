@@ -9,6 +9,9 @@ import Dropzone from "react-dropzone";
 import { useDispatch, useSelector } from "react-redux";
 import { setPosts } from "../state/reducers";
 import { WidgetWrapper } from "../components/WidgetWrapper";
+import { useTheme } from "@emotion/react";
+import {Typography} from "@mui/material";
+import EditOutlined from "@mui/icons-material/EditOutlined";
 
 export default function NewPost() {
   const [isImage, setisImage] = useState(false);
@@ -18,6 +21,7 @@ export default function NewPost() {
   let token = useSelector((state) => state.token);
   let posts = useSelector((state) => state.posts);
   let dispatch = useDispatch();
+  let {palette} = useTheme();
 
   const handlePost = async () => {
     let formData = new FormData();
@@ -52,21 +56,39 @@ export default function NewPost() {
         placeholder="Whats on your mind?"
         value={post}
         onChange={(e) => setpost(e.target.value)}
+        sx={{
+            width: "100%",
+            backgroundColor: palette.neutral.light,
+            borderRadius: "2rem",
+            padding: "1rem 2rem",
+          }}
       />
       <Box>
         {isImage ? (
           <Dropzone
+          multiple={false}
             onDrop={(acceptedFiles) => {
               file = acceptedFiles[0];
             }}
           >
             {({ getRootProps, getInputProps }) => (
-              <section>
-                <div {...getRootProps()}>
+              <Box
+                  {...getRootProps()}
+                  border={`2px dashed ${palette.primary.main}`}
+                  p="1rem"
+                  width="100%"
+                  sx={{ "&:hover": { cursor: "pointer" } }}
+                >
                   <input {...getInputProps()} />
-                  <p>Drag 'n' drop some files here, or click to select files</p>
-                </div>
-              </section>
+                  {!file ? (
+                    <p>Add Image Here</p>
+                  ) : (
+                    <FlexBox>
+                      <Typography>{file.name}</Typography>
+                      <EditOutlined />
+                    </FlexBox>
+                  )}
+                </Box>
             )}
           </Dropzone>
         ) : null}
